@@ -10,7 +10,15 @@ public class MITHT_Project : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-		var modules = new[] { "Core", "CoreUObject", "Engine", "InputCore", "HeadMountedDisplay" };
+		var modules = new[]
+		{
+			"Core",
+			"CoreUObject",
+			"Engine",
+			"InputCore",
+			"HeadMountedDisplay",
+			"ActorInteractionPlugin"
+		};
 		PublicDependencyModuleNames.AddRange(modules);
 	}
 }

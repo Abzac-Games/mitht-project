@@ -1,6 +1,7 @@
 #include "FirstPersonCharacter.h"
 
 #include "Components/CapsuleComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AFirstPersonCharacter::AFirstPersonCharacter() : MinFieldOfView(60.0f), MaxFieldOfView(100.0f)
@@ -16,11 +17,14 @@ AFirstPersonCharacter::AFirstPersonCharacter() : MinFieldOfView(60.0f), MaxField
 	LocalCapsuleComponent->SetCapsuleHalfHeight(90.0f);
 
 	// Create and set defaults for camera component
-	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
+	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera Component"));
 	CameraComponent->SetupAttachment(LocalCapsuleComponent);
 	const FVector RelativeLocation(0, 0, BaseEyeHeight);
 	CameraComponent->SetRelativeLocation(RelativeLocation);
 	CameraComponent->bUsePawnControlRotation = true;
+
+	// Create and set defaults for interactor component
+	InteractorComponent = CreateDefaultSubobject<UActorInteractorComponent>(TEXT("Interactor Component"));
 }
 
 // Called when the game starts or when spawned
@@ -50,7 +54,8 @@ void AFirstPersonCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
 	PlayerInputComponent->BindAxis(TEXT("Zoom Camera"), this, &AFirstPersonCharacter::ZoomCamera);
 
 	// Interactions
-	PlayerInputComponent->BindAction(TEXT("Interact"), IE_Pressed, this, &AFirstPersonCharacter::Interact);
+	PlayerInputComponent->BindAction(TEXT("Interact"), IE_Pressed, this, &AFirstPersonCharacter::InteractionPressed);
+	PlayerInputComponent->BindAction(TEXT("Interact"), IE_Released, this, &AFirstPersonCharacter::InteractionReleased);
 }
 
 void AFirstPersonCharacter::MoveForwardBackward(const float AxisValue)
@@ -75,15 +80,18 @@ void AFirstPersonCharacter::TurnRightLeft(const float AxisValue)
 	AddControllerYawInput(AxisValue);
 }
 
-// ReSharper disable once CppMemberFunctionMayBeStatic
-void AFirstPersonCharacter::Interact()
+// ReSharper disable once CppMemberFunctionMayBeConst
+void AFirstPersonCharacter::InteractionPressed()
 {
-	// TODO: make actual interaction system
-	if (GEngine == nullptr)
-	{
-		return;
-	}
-	GEngine->AddOnScreenDebugMessage(-1, 0.5f, FColor::Red, TEXT("Interacting with something..."));
+	const auto TimeKeyPressed = UGameplayStatics::GetTimeSeconds(this);
+	InteractorComponent->OnInteractionKeyPressed.Broadcast(TimeKeyPressed);
+}
+
+// ReSharper disable once CppMemberFunctionMayBeConst
+void AFirstPersonCharacter::InteractionReleased()
+{
+	const auto TimeKeyPressed = UGameplayStatics::GetTimeSeconds(this);
+	InteractorComponent->OnInteractionKeyReleased.Broadcast(TimeKeyPressed);
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst

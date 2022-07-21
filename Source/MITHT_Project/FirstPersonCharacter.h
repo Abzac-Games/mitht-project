@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Camera/CameraComponent.h"
+#include "ActorInteractionPlugin/Public/Components/ActorInteractorComponent.h"
 #include "FirstPersonCharacter.generated.h"
 
 /**
@@ -27,6 +28,9 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UCameraComponent> CameraComponent;
 
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UActorInteractorComponent> InteractorComponent;
+
 	// TODO: replace with value from the settings
 	UPROPERTY(EditDefaultsOnly, DisplayName="Minimum Field Of View", Category="Character",
 		meta=(ClampMin=5, UIMin=5, ClampMax=87, UIMax=87))
@@ -48,7 +52,9 @@ protected:
 
 	void TurnRightLeft(float AxisValue);
 
-	void Interact();
+	void InteractionPressed();
+
+	void InteractionReleased();
 
 	void ZoomCamera(float AxisValue);
 };
