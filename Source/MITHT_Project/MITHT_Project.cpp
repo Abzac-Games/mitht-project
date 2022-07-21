@@ -3,4 +3,4 @@
 #include "MITHT_Project.h"
 #include "Modules/ModuleManager.h"
 
-IMPLEMENT_PRIMARY_GAME_MODULE( FDefaultGameModuleImpl, MITHT_Project, "MITHT_Project" );
+IMPLEMENT_PRIMARY_GAME_MODULE(FDefaultGameModuleImpl, MITHT_Project, "MITHT_Project");
