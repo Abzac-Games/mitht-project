@@ -13,8 +13,11 @@ AFirstPersonCharacter::AFirstPersonCharacter() : MinFieldOfView(60.0f), MaxField
 	// You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	// Set the character to be able to crouch
-	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
+	// Set defaults for character movement component
+	const auto MovementComponent = GetCharacterMovement();
+	MovementComponent->NavAgentProps.bCanCrouch = true;
+	MovementComponent->MaxWalkSpeed = 200.0f;
+	MovementComponent->MaxWalkSpeedCrouched = 100.0f;
 
 	// Set defaults for capsule component
 	const auto LocalCapsuleComponent = GetCapsuleComponent();
@@ -23,13 +26,16 @@ AFirstPersonCharacter::AFirstPersonCharacter() : MinFieldOfView(60.0f), MaxField
 	// Create and set defaults for camera component
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera Component"));
 	CameraComponent->SetupAttachment(LocalCapsuleComponent);
-	const FVector RelativeLocation(0, 0, BaseEyeHeight);
-	CameraComponent->SetRelativeLocation(RelativeLocation);
+	const FVector CameraRelativeLocation(0, 0, BaseEyeHeight);
+	CameraComponent->SetRelativeLocation(CameraRelativeLocation);
 	CameraComponent->bUsePawnControlRotation = true;
 
 	// Create and set defaults for interactor component
 	InteractorComponent = CreateDefaultSubobject<UActorInteractorComponent>(TEXT("Interactor Component"));
 	InteractorComponent->SetUseCustomTraceStart(true);
+
+	// Set up base relative location for crouching
+	BaseCameraLocation = CameraRelativeLocation;
 }
 
 // Called when the game starts or when spawned
@@ -43,6 +49,13 @@ void AFirstPersonCharacter::Tick(const float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	// Update camera location for crouching
+	const auto NewCameraRelativeLocation =
+		FMath::VInterpTo(CurrentInterpolatedCameraLocation, BaseCameraLocation, DeltaTime, 10.0f);
+	CurrentInterpolatedCameraLocation = NewCameraRelativeLocation;
+	CameraComponent->SetRelativeLocation(NewCameraRelativeLocation);
+
+	// Set new trace start
 	const auto NewTraceStart = CameraComponent->GetComponentTransform();
 	InteractorComponent->SetCustomTraceStart(NewTraceStart);
 }
@@ -122,4 +135,24 @@ void AFirstPersonCharacter::StartCrouching()
 void AFirstPersonCharacter::StopCrouching()
 {
 	Super::UnCrouch();
+}
+
+void AFirstPersonCharacter::OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
+{
+	if (!GetCharacterMovement()->IsFalling())
+	{
+		auto NewLocation = BaseCameraLocation;
+		NewLocation.Z += ScaledHalfHeightAdjust;
+		CurrentInterpolatedCameraLocation = NewLocation;
+	}
+}
+
+void AFirstPersonCharacter::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
+{
+	if (!GetCharacterMovement()->IsFalling())
+	{
+		auto NewLocation = BaseCameraLocation;
+		NewLocation.Z -= ScaledHalfHeightAdjust;
+		CurrentInterpolatedCameraLocation = NewLocation;
+	}
 }

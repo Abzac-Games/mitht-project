@@ -41,8 +41,15 @@ protected:
 		meta=(ClampMin=88, UIMin=88, ClampMax=170, UIMax=170))
 	float MaxFieldOfView;
 
+	FVector BaseCameraLocation;
+	FVector CurrentInterpolatedCameraLocation;
+
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	virtual void OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
+
+	virtual void OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
 
 	void MoveForwardBackward(float AxisValue);
 
