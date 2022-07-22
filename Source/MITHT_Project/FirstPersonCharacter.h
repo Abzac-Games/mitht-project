@@ -28,7 +28,7 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UCameraComponent> CameraComponent;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UActorInteractorComponent> InteractorComponent;
 
 	// TODO: replace with value from the settings
@@ -52,9 +52,13 @@ protected:
 
 	void TurnRightLeft(float AxisValue);
 
-	void InteractionPressed();
-
-	void InteractionReleased();
-
 	void ZoomCamera(float AxisValue);
+
+	void StartInteraction();
+
+	void StopInteraction();
+
+	void StartCrouching();
+
+	void StopCrouching();
 };

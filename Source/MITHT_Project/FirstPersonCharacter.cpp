@@ -1,6 +1,7 @@
 #include "FirstPersonCharacter.h"
 
 #include "Components/CapsuleComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 
 // Sets default values
@@ -11,6 +12,9 @@ AFirstPersonCharacter::AFirstPersonCharacter() : MinFieldOfView(60.0f), MaxField
 	// Set this character to call Tick() every frame.
 	// You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
+	// Set the character to be able to crouch
+	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 
 	// Set defaults for capsule component
 	const auto LocalCapsuleComponent = GetCapsuleComponent();
@@ -25,6 +29,7 @@ AFirstPersonCharacter::AFirstPersonCharacter() : MinFieldOfView(60.0f), MaxField
 
 	// Create and set defaults for interactor component
 	InteractorComponent = CreateDefaultSubobject<UActorInteractorComponent>(TEXT("Interactor Component"));
+	InteractorComponent->SetUseCustomTraceStart(true);
 }
 
 // Called when the game starts or when spawned
@@ -37,6 +42,9 @@ void AFirstPersonCharacter::BeginPlay()
 void AFirstPersonCharacter::Tick(const float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	const auto NewTraceStart = CameraComponent->GetComponentTransform();
+	InteractorComponent->SetCustomTraceStart(NewTraceStart);
 }
 
 // Called to bind functionality to input
@@ -53,9 +61,13 @@ void AFirstPersonCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
 	PlayerInputComponent->BindAxis(TEXT("Look Up / Down"), this, &AFirstPersonCharacter::LookUpDown);
 	PlayerInputComponent->BindAxis(TEXT("Zoom Camera"), this, &AFirstPersonCharacter::ZoomCamera);
 
+	// Crouching
+	PlayerInputComponent->BindAction(TEXT("Crouch"), IE_Pressed, this, &AFirstPersonCharacter::StartCrouching);
+	PlayerInputComponent->BindAction(TEXT("Crouch"), IE_Released, this, &AFirstPersonCharacter::StopCrouching);
+
 	// Interactions
-	PlayerInputComponent->BindAction(TEXT("Interact"), IE_Pressed, this, &AFirstPersonCharacter::InteractionPressed);
-	PlayerInputComponent->BindAction(TEXT("Interact"), IE_Released, this, &AFirstPersonCharacter::InteractionReleased);
+	PlayerInputComponent->BindAction(TEXT("Interact"), IE_Pressed, this, &AFirstPersonCharacter::StartInteraction);
+	PlayerInputComponent->BindAction(TEXT("Interact"), IE_Released, this, &AFirstPersonCharacter::StopInteraction);
 }
 
 void AFirstPersonCharacter::MoveForwardBackward(const float AxisValue)
@@ -81,23 +93,33 @@ void AFirstPersonCharacter::TurnRightLeft(const float AxisValue)
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
-void AFirstPersonCharacter::InteractionPressed()
+void AFirstPersonCharacter::ZoomCamera(const float AxisValue)
+{
+	auto FieldOfView = CameraComponent->FieldOfView;
+	FieldOfView = FMath::Clamp(FieldOfView - AxisValue, MinFieldOfView, MaxFieldOfView);
+	CameraComponent->SetFieldOfView(FieldOfView);
+}
+
+// ReSharper disable once CppMemberFunctionMayBeConst
+void AFirstPersonCharacter::StartInteraction()
 {
 	const auto TimeKeyPressed = UGameplayStatics::GetTimeSeconds(this);
 	InteractorComponent->OnInteractionKeyPressed.Broadcast(TimeKeyPressed);
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
-void AFirstPersonCharacter::InteractionReleased()
+void AFirstPersonCharacter::StopInteraction()
 {
 	const auto TimeKeyPressed = UGameplayStatics::GetTimeSeconds(this);
 	InteractorComponent->OnInteractionKeyReleased.Broadcast(TimeKeyPressed);
 }
 
-// ReSharper disable once CppMemberFunctionMayBeConst
-void AFirstPersonCharacter::ZoomCamera(const float AxisValue)
+void AFirstPersonCharacter::StartCrouching()
 {
-	auto FieldOfView = CameraComponent->FieldOfView;
-	FieldOfView = FMath::Clamp(FieldOfView - AxisValue, MinFieldOfView, MaxFieldOfView);
-	CameraComponent->SetFieldOfView(FieldOfView);
+	Super::Crouch();
+}
+
+void AFirstPersonCharacter::StopCrouching()
+{
+	Super::UnCrouch();
 }
