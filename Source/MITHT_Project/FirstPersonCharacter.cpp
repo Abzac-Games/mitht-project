@@ -83,6 +83,11 @@ void AFirstPersonCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
 	PlayerInputComponent->BindAction(TEXT("Interact"), IE_Released, this, &AFirstPersonCharacter::StopInteraction);
 }
 
+UActorInteractorComponent* AFirstPersonCharacter::GetInteractorComponent() const
+{
+	return InteractorComponent;
+}
+
 void AFirstPersonCharacter::MoveForwardBackward(const float AxisValue)
 {
 	const auto Direction = GetActorForwardVector() * AxisValue;
