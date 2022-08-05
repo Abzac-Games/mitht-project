@@ -1,6 +1,7 @@
 #include "ProjectGameMode.h"
 
 #include "FirstPersonCharacter.h"
+#include "ProjectHUD.h"
 #include "Kismet/GameplayStatics.h"
 
 void AProjectGameMode::BeginPlay()
@@ -16,6 +17,12 @@ void AProjectGameMode::BeginPlay()
 
 void AProjectGameMode::OnPossessedPawnChanged([[maybe_unused]] APawn* OldPawn, APawn* NewPawn)
 {
+	if (InteractorComponent)
+	{
+		InteractorComponent->OnInteractableFound.RemoveDynamic(this, &AProjectGameMode::OnInteractableFound);
+		InteractorComponent->OnInteractableLost.RemoveDynamic(this, &AProjectGameMode::OnInteractableLost);
+	}
+
 	UActorInteractorComponent* NewInteractorComponent = nullptr;
 	if (const auto FirstPersonCharacter = Cast<AFirstPersonCharacter>(NewPawn))
 	{
@@ -26,27 +33,36 @@ void AProjectGameMode::OnPossessedPawnChanged([[maybe_unused]] APawn* OldPawn, A
 	if (InteractorComponent)
 	{
 		InteractorComponent->OnInteractableFound.AddDynamic(this, &AProjectGameMode::OnInteractableFound);
+		InteractorComponent->OnInteractableLost.AddDynamic(this, &AProjectGameMode::OnInteractableLost);
 	}
 }
 
 // ReSharper disable once CppParameterMayBeConstPtrOrRef, CppMemberFunctionMayBeConst
 void AProjectGameMode::OnInteractableFound(UActorInteractableComponent* FoundActorComponent)
 {
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, TEXT("Hello World"));
-	}
 	if (FoundActorComponent)
 	{
 		if (const auto PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0))
 		{
-			if (const auto HUD = PlayerController->GetHUD())
+			if (const auto HUD = Cast<AProjectHUD>(PlayerController->GetHUD()))
 			{
-				// todo
-				if (GEngine)
-				{
-					GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, TEXT("HUD was found!!!"));
-				}
+				const auto ComponentName = FoundActorComponent->GetInteractionActionTitle();
+				HUD->SetComponentName(ComponentName);
+			}
+		}
+	}
+}
+
+// ReSharper disable once CppParameterMayBeConstPtrOrRef, CppMemberFunctionMayBeConst
+void AProjectGameMode::OnInteractableLost(UActorInteractableComponent* LostActorComponent)
+{
+	if (LostActorComponent)
+	{
+		if (const auto PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+		{
+			if (const auto HUD = Cast<AProjectHUD>(PlayerController->GetHUD()))
+			{
+				HUD->RemoveComponentName();
 			}
 		}
 	}

@@ -20,7 +20,12 @@ protected:
 
 	virtual void BeginPlay() override;
 
+	UFUNCTION()
 	void OnPossessedPawnChanged(APawn* OldPawn, APawn* NewPawn);
 
+	UFUNCTION()
 	void OnInteractableFound(UActorInteractableComponent* FoundActorComponent);
+
+	UFUNCTION()
+	void OnInteractableLost(UActorInteractableComponent* LostActorComponent);
 };
