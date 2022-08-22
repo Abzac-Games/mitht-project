@@ -17,7 +17,8 @@ public class MITHT_Project : ModuleRules
 			"Engine",
 			"InputCore",
 			"HeadMountedDisplay",
-			"ActorInteractionPlugin"
+			"ActorInteractionPlugin",
+			"SMSystem"
 		};
 		PublicDependencyModuleNames.AddRange(modules);
 	}

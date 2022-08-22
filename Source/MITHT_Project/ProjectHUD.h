@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "EquipmentComponentUIState.h"
 #include "GameFramework/HUD.h"
 #include "ProjectHUD.generated.h"
 
@@ -14,8 +15,8 @@ class MITHT_PROJECT_API AProjectHUD : public AHUD
 
 public:
 	UFUNCTION(BlueprintImplementableEvent)
-	void SetComponentName(const FText& ComponentName);
+	void SetEquipmentComponentUIState(const FEquipmentComponentUIState& State);
 
 	UFUNCTION(BlueprintImplementableEvent)
-	void RemoveComponentName();
+	void RemoveEquipmentComponentUIState();
 };

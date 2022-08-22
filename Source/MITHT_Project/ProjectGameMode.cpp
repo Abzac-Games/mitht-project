@@ -1,5 +1,6 @@
 #include "ProjectGameMode.h"
 
+#include "EquipmentComponent.h"
 #include "FirstPersonCharacter.h"
 #include "ProjectHUD.h"
 #include "Kismet/GameplayStatics.h"
@@ -8,7 +9,7 @@ void AProjectGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (const auto PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+	if (APlayerController* const PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0))
 	{
 		OnPossessedPawnChanged(nullptr, PlayerController->GetPawn());
 		PlayerController->OnPossessedPawnChanged.AddDynamic(this, &AProjectGameMode::OnPossessedPawnChanged);
@@ -24,7 +25,7 @@ void AProjectGameMode::OnPossessedPawnChanged([[maybe_unused]] APawn* OldPawn, A
 	}
 
 	UActorInteractorComponent* NewInteractorComponent = nullptr;
-	if (const auto FirstPersonCharacter = Cast<AFirstPersonCharacter>(NewPawn))
+	if (const AFirstPersonCharacter* FirstPersonCharacter = Cast<AFirstPersonCharacter>(NewPawn))
 	{
 		NewInteractorComponent = FirstPersonCharacter->GetInteractorComponent();
 	}
@@ -42,12 +43,21 @@ void AProjectGameMode::OnInteractableFound(UActorInteractableComponent* FoundAct
 {
 	if (FoundActorComponent)
 	{
-		if (const auto PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+		if (const APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0))
 		{
-			if (const auto HUD = Cast<AProjectHUD>(PlayerController->GetHUD()))
+			if (AProjectHUD* const HUD = Cast<AProjectHUD>(PlayerController->GetHUD()))
 			{
-				const auto ComponentName = FoundActorComponent->GetInteractionActionTitle();
-				HUD->SetComponentName(ComponentName);
+				FEquipmentComponentUIState State;
+				if (AEquipmentComponent* const EquipmentComponent = Cast<AEquipmentComponent>(FoundActorComponent))
+				{
+					State = EquipmentComponent->GetUIState();
+				}
+				else
+				{
+					const FText Name = FoundActorComponent->GetInteractionActionTitle();
+					State = FEquipmentComponentUIState { Name, FText::GetEmpty() };
+				}
+				HUD->SetEquipmentComponentUIState(State);
 			}
 		}
 	}
@@ -58,11 +68,11 @@ void AProjectGameMode::OnInteractableLost(UActorInteractableComponent* LostActor
 {
 	if (LostActorComponent)
 	{
-		if (const auto PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+		if (const APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0))
 		{
-			if (const auto HUD = Cast<AProjectHUD>(PlayerController->GetHUD()))
+			if (AProjectHUD* const HUD = Cast<AProjectHUD>(PlayerController->GetHUD()))
 			{
-				HUD->RemoveComponentName();
+				HUD->RemoveEquipmentComponentUIState();
 			}
 		}
 	}

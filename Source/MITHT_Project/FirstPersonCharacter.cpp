@@ -14,13 +14,13 @@ AFirstPersonCharacter::AFirstPersonCharacter() : MinFieldOfView(60.0f), MaxField
 	PrimaryActorTick.bCanEverTick = true;
 
 	// Set defaults for character movement component
-	const auto MovementComponent = GetCharacterMovement();
+	UCharacterMovementComponent* const MovementComponent = GetCharacterMovement();
 	MovementComponent->NavAgentProps.bCanCrouch = true;
 	MovementComponent->MaxWalkSpeed = 200.0f;
 	MovementComponent->MaxWalkSpeedCrouched = 100.0f;
 
 	// Set defaults for capsule component
-	const auto LocalCapsuleComponent = GetCapsuleComponent();
+	UCapsuleComponent* const LocalCapsuleComponent = GetCapsuleComponent();
 	LocalCapsuleComponent->SetCapsuleHalfHeight(90.0f);
 
 	// Create and set defaults for camera component
@@ -50,13 +50,13 @@ void AFirstPersonCharacter::Tick(const float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	// Update camera location for crouching
-	const auto NewCameraRelativeLocation =
+	const FVector NewCameraRelativeLocation =
 		FMath::VInterpTo(CurrentInterpolatedCameraLocation, BaseCameraLocation, DeltaTime, 10.0f);
 	CurrentInterpolatedCameraLocation = NewCameraRelativeLocation;
 	CameraComponent->SetRelativeLocation(NewCameraRelativeLocation);
 
 	// Set new trace start
-	const auto NewTraceStart = CameraComponent->GetComponentTransform();
+	const FTransform NewTraceStart = CameraComponent->GetComponentTransform();
 	InteractorComponent->SetCustomTraceStart(NewTraceStart);
 }
 
@@ -90,13 +90,13 @@ UActorInteractorComponent* AFirstPersonCharacter::GetInteractorComponent() const
 
 void AFirstPersonCharacter::MoveForwardBackward(const float AxisValue)
 {
-	const auto Direction = GetActorForwardVector() * AxisValue;
+	const FVector Direction = GetActorForwardVector() * AxisValue;
 	AddMovementInput(Direction);
 }
 
 void AFirstPersonCharacter::MoveRightLeft(const float AxisValue)
 {
-	const auto Direction = GetActorRightVector() * AxisValue;
+	const FVector Direction = GetActorRightVector() * AxisValue;
 	AddMovementInput(Direction);
 }
 
@@ -121,14 +121,14 @@ void AFirstPersonCharacter::ZoomCamera(const float AxisValue)
 // ReSharper disable once CppMemberFunctionMayBeConst
 void AFirstPersonCharacter::StartInteraction()
 {
-	const auto TimeKeyPressed = UGameplayStatics::GetTimeSeconds(this);
+	const float TimeKeyPressed = UGameplayStatics::GetTimeSeconds(this);
 	InteractorComponent->OnInteractionKeyPressed.Broadcast(TimeKeyPressed);
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
 void AFirstPersonCharacter::StopInteraction()
 {
-	const auto TimeKeyPressed = UGameplayStatics::GetTimeSeconds(this);
+	const float TimeKeyPressed = UGameplayStatics::GetTimeSeconds(this);
 	InteractorComponent->OnInteractionKeyReleased.Broadcast(TimeKeyPressed);
 }
 
@@ -146,7 +146,7 @@ void AFirstPersonCharacter::OnStartCrouch(float HalfHeightAdjust, float ScaledHa
 {
 	if (!GetCharacterMovement()->IsFalling())
 	{
-		auto NewLocation = BaseCameraLocation;
+		FVector NewLocation = BaseCameraLocation;
 		NewLocation.Z += ScaledHalfHeightAdjust;
 		CurrentInterpolatedCameraLocation = NewLocation;
 	}
@@ -156,7 +156,7 @@ void AFirstPersonCharacter::OnEndCrouch(float HalfHeightAdjust, float ScaledHalf
 {
 	if (!GetCharacterMovement()->IsFalling())
 	{
-		auto NewLocation = BaseCameraLocation;
+		FVector NewLocation = BaseCameraLocation;
 		NewLocation.Z -= ScaledHalfHeightAdjust;
 		CurrentInterpolatedCameraLocation = NewLocation;
 	}
