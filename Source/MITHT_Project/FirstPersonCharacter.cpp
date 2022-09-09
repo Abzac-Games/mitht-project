@@ -5,7 +5,7 @@
 #include "Kismet/GameplayStatics.h"
 
 // Sets default values
-AFirstPersonCharacter::AFirstPersonCharacter() : MinFieldOfView(60.0f), MaxFieldOfView(100.0f)
+AFirstPersonCharacter::AFirstPersonCharacter() : MinFieldOfView(40.0f), MaxFieldOfView(100.0f)
 {
 	check(MinFieldOfView <= MaxFieldOfView);
 
@@ -114,8 +114,10 @@ void AFirstPersonCharacter::TurnRightLeft(const float AxisValue)
 // ReSharper disable once CppMemberFunctionMayBeConst
 void AFirstPersonCharacter::ZoomCamera(const float AxisValue)
 {
-	auto FieldOfView = CameraComponent->FieldOfView;
-	FieldOfView = FMath::Clamp(FieldOfView - AxisValue, MinFieldOfView, MaxFieldOfView);
+	float FieldOfView = CameraComponent->FieldOfView;
+	const float Ratio = (FieldOfView - MinFieldOfView) / (MaxFieldOfView - MinFieldOfView);
+	const float Multiplier = FMath::Clamp(Ratio + 0.25, 0.25, 1);
+	FieldOfView = FMath::Clamp(FieldOfView - AxisValue * Multiplier, MinFieldOfView, MaxFieldOfView);
 	CameraComponent->SetFieldOfView(FieldOfView);
 }
 
@@ -143,7 +145,7 @@ void AFirstPersonCharacter::StopCrouching()
 	Super::UnCrouch();
 }
 
-void AFirstPersonCharacter::OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
+void AFirstPersonCharacter::OnStartCrouch(float HalfHeightAdjust, const float ScaledHalfHeightAdjust)
 {
 	if (!GetCharacterMovement()->IsFalling())
 	{
@@ -153,7 +155,7 @@ void AFirstPersonCharacter::OnStartCrouch(float HalfHeightAdjust, float ScaledHa
 	}
 }
 
-void AFirstPersonCharacter::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
+void AFirstPersonCharacter::OnEndCrouch(float HalfHeightAdjust, const float ScaledHalfHeightAdjust)
 {
 	if (!GetCharacterMovement()->IsFalling())
 	{
