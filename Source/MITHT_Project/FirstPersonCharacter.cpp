@@ -28,6 +28,7 @@ AFirstPersonCharacter::AFirstPersonCharacter() : MinFieldOfView(60.0f), MaxField
 	CameraComponent->SetupAttachment(LocalCapsuleComponent);
 	const FVector CameraRelativeLocation(0, 0, BaseEyeHeight);
 	CameraComponent->SetRelativeLocation(CameraRelativeLocation);
+	CameraComponent->SetFieldOfView(MaxFieldOfView);
 	CameraComponent->bUsePawnControlRotation = true;
 
 	// Create and set defaults for interactor component
