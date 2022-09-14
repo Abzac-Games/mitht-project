@@ -1,6 +1,6 @@
 #include "ProjectGameMode.h"
 
-#include "EquipmentComponent.h"
+#include "EquipmentComponentUIStateHolder.h"
 #include "FirstPersonCharacter.h"
 #include "ProjectHUD.h"
 #include "Kismet/GameplayStatics.h"
@@ -43,14 +43,15 @@ void AProjectGameMode::OnInteractableFound(UActorInteractableComponent* FoundAct
 {
 	if (FoundActorComponent)
 	{
+		AActor* const FoundOwner = FoundActorComponent->GetOwner();
 		if (const APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0))
 		{
 			if (AProjectHUD* const HUD = Cast<AProjectHUD>(PlayerController->GetHUD()))
 			{
 				FEquipmentComponentUIState State;
-				if (AEquipmentComponent* const EquipmentComponent = Cast<AEquipmentComponent>(FoundActorComponent))
+				if (FoundOwner->Implements<UEquipmentComponentUIStateHolder>())
 				{
-					State = EquipmentComponent->GetUIState();
+					State = IEquipmentComponentUIStateHolder::Execute_GetUIState(FoundOwner);
 				}
 				else
 				{
